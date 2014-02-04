@@ -1,10 +1,9 @@
 package map.match;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MapCache {
-    private final Map<Key, Map<String, Object>> data = new ConcurrentHashMap<Key, Map<String, Object>>();
+    private final Map<Key, Map<String, Object>> data = new TreeMap<Key, Map<String, Object>>();
     private final List<String> prioritisedKeys;
 
     public MapCache(List<String> prioritisedKeys) {
@@ -43,7 +42,25 @@ public class MapCache {
         return new Key(subKey);
     }
 
-    public static class Key {
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("{\n");
+        for (Iterator<Map.Entry<Key, Map<String, Object>>> it = data.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<Key, Map<String, Object>> entry = it.next();
+            stringBuilder.append(entry.getKey().asMap());
+            stringBuilder.append(":");
+            stringBuilder.append(entry.getValue());
+            if (it.hasNext()) {
+                stringBuilder.append(",");
+                stringBuilder.append("\n");
+            }
+        }
+        stringBuilder.append("\n}");
+
+        return stringBuilder.toString();
+    }
+
+    public static class Key implements Comparable<Key> {
         private final Map<String, Object> keyMap;
 
         public Key(Map<String, Object> keyMap) {
@@ -55,31 +72,16 @@ public class MapCache {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Key key1 = (Key) o;
+            Key key = (Key) o;
 
-            Map<String, Object> thisKeyMap = this.asMap();
-            Map<String, Object> key1KeyMap = key1.asMap();
-
-            if (thisKeyMap.size() !=  key1KeyMap.size()) {
-                return false;
-            }
-
-            for (String key : thisKeyMap.keySet()) {
-                if (key1KeyMap.containsKey(key)) {
-                    Object thisKeyValue = thisKeyMap.get(key);
-                    Object key1Value = key1KeyMap.get(key);
-                    if (thisKeyValue != null && !thisKeyValue.equals(key1Value)) {
-                        return false;
-                    }
-                }
-            }
+            if (keyMap != null ? !keyMap.equals(key.keyMap) : key.keyMap != null) return false;
 
             return true;
         }
 
         @Override
         public int hashCode() {
-            return keyMap.hashCode();
+            return keyMap != null ? keyMap.hashCode() : 0;
         }
 
         public boolean hasAll(List<String> keyKeys) {
@@ -97,6 +99,31 @@ public class MapCache {
 
         public Map<String, Object> asMap() {
             return keyMap;
+        }
+
+        @Override
+        public int compareTo(Key o) {
+            if (!keyMap.keySet().containsAll(o.keyMap.keySet())) {
+                throw new IllegalArgumentException();
+            }
+
+            String[] fieldList = new String[] {"id", "salesRef", "country", "underlying"};
+            for (String field : fieldList) {
+                Object value = keyMap.get(field);
+                Object otherValue = o.keyMap.get(field);
+                if (value != null && otherValue == null) {
+                    return -1;
+                } else if (value == null && otherValue != null) {
+                    return 1;
+                } else if (value != null && otherValue != null) {
+                    int comparison = ((Comparable)value).compareTo(otherValue);
+                    if (comparison != 0) {
+                        return comparison;
+                    }
+                }
+            }
+
+            return 0;
         }
     }
 }

@@ -8,12 +8,13 @@ import org.junit.runners.Parameterized;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static map.match.test.MapMatchTest.buildCache;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(Parameterized.class)
 public class MapMatchTest {
-    private final MapCache mapCache = new MapCache(keysInPriorityOrder());
+    private final MapCache mapCache = buildCache();
     private final MapCache.Key lookupKey;
     private final Map<String, Object> expectedValue;
 
@@ -45,7 +46,6 @@ public class MapMatchTest {
     }
 
     public MapMatchTest(MapCache.Key lookupKey, Map<String, Object> expectedValue) {
-        initData();
         this.lookupKey = lookupKey;
         this.expectedValue = expectedValue;
     }
@@ -59,7 +59,8 @@ public class MapMatchTest {
         verifyValue(expectedValue, mapValue);
     }
 
-    private void initData() {
+    static MapCache buildCache() {
+        MapCache mapCache = new MapCache(keysInPriorityOrder());
         MapCache.Key key;
         Map<String, Object> value;
 
@@ -69,6 +70,10 @@ public class MapMatchTest {
 
         key = key("12345", null, "HK", ".HSI");
         value = value(new BigDecimal("0.032"), new BigDecimal("0.016"), new BigDecimal("0.064"), 0);
+        mapCache.put(key, value);
+
+        key = key("567890", "Best Bank BBB", "HK", ".HSI");
+        value = value(new BigDecimal("0.004"), new BigDecimal("0.002"), new BigDecimal("0.008"), 3);
         mapCache.put(key, value);
 
         key = key("567890", "Best Bank BBB", "HK", null);
@@ -82,6 +87,8 @@ public class MapMatchTest {
         key = key("567890", null, null, null);
         value = value(new BigDecimal("0.016"), new BigDecimal("0.008"), new BigDecimal("0.032"), 0);
         mapCache.put(key, value);
+
+        return mapCache;
     }
 
     private void verifyValue(Map<String, Object> value, Map<String, Object> mapValue) {
@@ -107,12 +114,18 @@ public class MapMatchTest {
         return new MapCache.Key(key);
     }
 
-    private List<String> keysInPriorityOrder() {
+    private static List<String> keysInPriorityOrder() {
         List<String> list = new ArrayList<String>();
         list.add("id");
         list.add("salesRef");
         list.add("country");
         list.add("underlying");
         return list;
+    }
+}
+
+class Main {
+    public static void main(String[] args) {
+        System.out.println(buildCache());
     }
 }
