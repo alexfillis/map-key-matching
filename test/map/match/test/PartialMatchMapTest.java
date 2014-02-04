@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(Parameterized.class)
-public class PartialMatchKeyTest {
+public class PartialMatchMapTest {
     private final Map<PartialMatchKey, Map<String, Object>> data = new ConcurrentHashMap<PartialMatchKey, Map<String, Object>>();
     private final PartialMatchKey lookupKey;
     private final Map<String, Object> expectedValue;
@@ -45,7 +45,7 @@ public class PartialMatchKeyTest {
         return Arrays.asList(data);
     }
 
-    public PartialMatchKeyTest(PartialMatchKey lookupKey, Map<String, Object> expectedValue) {
+    public PartialMatchMapTest(PartialMatchKey lookupKey, Map<String, Object> expectedValue) {
         initData();
         this.lookupKey = lookupKey;
         this.expectedValue = expectedValue;
